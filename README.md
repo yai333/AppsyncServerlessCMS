@@ -2,6 +2,8 @@
 
 Concept proof prototype of serverless CMS using AWS Appsync, Aurora Serverless, Cognito, Serverless Framework and React
 
+![Screenshot](priview.gif)
+
 ## Stack
 
 - Serverless Framework
