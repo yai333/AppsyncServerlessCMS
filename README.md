@@ -23,12 +23,12 @@ File Structure
   eg.
 
   ``` 
-custom:
-  poolName: ${self:provider.stage}SimpleCMS
-  dbName: "simpleCMS"
-  dbUserName: "root"
-  dbPassword: "Password"
-  systemUserEmail: "dev@neami.app"
+  custom:
+    poolName: ${self:provider.stage}SimpleCMS
+    dbName: "simpleCMS"
+    dbUserName: "root"
+    dbPassword: "Password"
+    systemUserEmail: "dev@neami.app"
 
   ```
 - Set up AWS credentials
