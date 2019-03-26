@@ -1,0 +1,18 @@
+{
+  "name": "simplecms",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "dependencies": {
+    "mysql2": "^1.6.5",
+    "sequelize": "^5.1.0",
+    "serverless-appsync-plugin": "^1.1.0",
+    "serverless-pseudo-parameters": "^2.4.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

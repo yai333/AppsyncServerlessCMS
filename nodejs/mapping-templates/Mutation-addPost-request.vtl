@@ -1,0 +1,10 @@
+#if( $util.isNullOrBlank($context.identity.cognitoIdentityAuthType)  || $context.identity.cognitoIdentityAuthType != 'authenticated' )
+	$util.unauthorized()
+#end
+
+$util.qr($context.stash.put("title", $context.args.post.title))
+$util.qr($context.stash.put("created_at", $util.time.nowISO8601()))
+$util.qr($context.stash.put("notificationEmails", $context.args.post.notificationEmails))
+$util.qr($context.stash.put("content", $context.args.post.content))
+$util.qr($context.stash.put("__typename", "Post"))
+{}

@@ -1,0 +1,30 @@
+input PostInput {
+  title: String
+  content: String
+  notificationEmails: String
+  createdAt: String
+}
+
+type Mutation {
+  addPost(post: PostInput!): Post
+  deletePost(id: Int!): Post
+}
+
+type Post {
+  id: Int
+  title: String
+  datetime: String
+  author: String
+  content: String
+  createdAt: String
+  notificationEmails: String
+}
+
+type Query {
+  getPosts(limit: Int, currentPage: Int, nextPage: Int): [Post]
+}
+
+type Subscription {
+  onPostAdded: Post @aws_subscribe(mutations: ["addPost"])
+  onPostDeleted: Post @aws_subscribe(mutations: ["deletePost"])
+}

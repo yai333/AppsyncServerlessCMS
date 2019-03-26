@@ -1,0 +1,135 @@
+Resources:
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: ${self:custom.poolName}
+      Schema:
+        - Name: email
+          Required: true
+          Mutable: true
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+        UnusedAccountValidityDays: 90
+        InviteMessageTemplate:
+          EmailMessage: "Your admin username is {username} and the temporary password is {####}"
+          EmailSubject: "Your temporary password for simpleCMS"
+      AutoVerifiedAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 6
+          RequireLowercase: false
+          RequireUppercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+      MfaConfiguration: OFF
+
+  InitialSystemAdminUser:
+    Type: AWS::Cognito::UserPoolUser
+    Properties:
+      UserPoolId:
+        Ref: CognitoUserPool
+      Username: ${self:custom.systemUserEmail}
+      DesiredDeliveryMediums:
+        - EMAIL
+      ForceAliasCreation: true
+      UserAttributes:
+        - Name: email
+          Value: ${self:custom.systemUserEmail}
+        - Name: name
+          Value: Admin
+
+  CognitoIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: ${self:service.name}IdentityPool
+      AllowUnauthenticatedIdentities: true
+      CognitoIdentityProviders:
+        - ClientId:
+            Ref: WebUserPoolClient
+          ProviderName:
+            Fn::GetAtt: ["CognitoUserPool", "ProviderName"]
+
+  WebUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: ${self:custom.poolName}-webclient
+      GenerateSecret: false
+      UserPoolId: { Ref: CognitoUserPool }
+      ExplicitAuthFlows:
+        - ADMIN_NO_SRP_AUTH
+
+  # IAM roles
+  CognitoIdentityPoolRoles:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: { Ref: CognitoIdentityPool }
+      Roles:
+        authenticated: { Fn::GetAtt: [AuthServiceRole, Arn] }
+        unauthenticated: { Fn::GetAtt: [UNAuthServiceRole, Arn] }
+  AuthServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ${self:service.name}-authrolev2
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              ForAnyValue:StringLike:
+                "cognito-identity.amazonaws.com:amr": "authenticated"
+      Policies:
+        - PolicyName: AllowAuthenticatedAppSyncAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - "appsync:GraphQL"
+                Effect: Allow
+                Resource:
+                  - {
+                      Fn::Join: ["/", [{ Fn::GetAtt: [GraphQlApi, Arn] }, "*"]],
+                    }
+  UNAuthServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ${self:service.name}-unauthrolev2
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              ForAnyValue:StringLike:
+                "cognito-identity.amazonaws.com:amr": "unauthenticated"
+      Policies:
+        - PolicyName: AllowUnauthenticatedAppSyncQueries
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - "appsync:GraphQL"
+                Effect: Allow
+                Resource:
+                  - {
+                      Fn::Join: ["/", [{ Fn::GetAtt: [GraphQlApi, Arn] }, "*"]],
+                    }
+              - Action:
+                  - "appsync:GraphQL"
+                Effect: Deny
+                Resource:
+                  - {
+                      Fn::Join:
+                        [
+                          "/",
+                          [
+                            { Fn::GetAtt: [GraphQlApi, Arn] },
+                            "types/Mutation/*",
+                          ],
+                        ],
+                    }

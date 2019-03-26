@@ -1,0 +1,97 @@
+# Welcome to serverless. Read the docs
+# https://serverless.com/framework/docs/
+
+# Serverless.yml is the configuration the CLI
+# uses to deploy your code to your provider of choice
+
+# The `service` block is the name of the service
+service:
+  name: appsyncauroranodejs
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'ap-southeast-2'}
+  timeout: 300
+  vpc:
+    securityGroupIds:
+      - Fn::GetAtt: [DatabaseVpcSecurityGroup, GroupId]
+    subnetIds:
+      - Ref: PrivateSubnet1
+      - Ref: PrivateSubnet2
+  environment:
+    DATABASE_URL: { Fn::GetAtt: [Database, Endpoint.Address] }
+    DATABASE_NAME: ${self:custom.dbName}
+    DATABASE_USERNAME: ${self:custom.dbUserName}
+    DATABASE_PASSWORD: ${self:custom.dbPassword}
+
+plugins:
+  - serverless-appsync-plugin
+  - serverless-pseudo-parameters
+
+custom:
+  poolName: ${self:provider.stage}SimpleCMS
+  dbName: "simpleCMS"
+  dbUserName: "root"
+  dbPassword: "Password"
+  systemUserEmail: "dev@neami.app"
+  appSync:
+    region: ${self:provider.region}
+    name: ${self:service.name}-${self:provider.stage}
+    authenticationType: AWS_IAM
+    serviceRole: "${self:service.name}-AppSyncServiceRole"
+    userPoolConfig:
+      awsRegion: "${self:provider.region}"
+      userPoolId: ${self:custom.userPool.${self:provider.stage}}
+      defaultAction: ALLOW
+    mappingTemplates:
+      - type: Query
+        dataSource: LambdaSource
+        field: getPosts
+        request: "Query-getPosts-request.vtl"
+        response: "Query-getPosts-response.vtl"
+      - type: Post
+        dataSource: LambdaSource
+        field: author
+        request: "Query-author-request.vtl"
+        response: "Query-author-response.vtl"
+      - type: Mutation
+        field: addPost
+        request: Mutation-addPost-request.vtl
+        response: common-response.vtl
+        kind: PIPELINE
+        functions:
+          - addPost
+          - sendNotification
+      - type: Mutation
+        dataSource: LambdaSource
+        field: deletePost
+        request: Mutation-deletePost-request.vtl
+        response: common-response.vtl
+    functionConfigurations:
+      - dataSource: LambdaSource
+        name: "addPost"
+        request: "Function-addPost-request.vtl"
+        response: "common-response.vtl"
+      - dataSource: LambdaSource
+        name: "sendNotification"
+        request: "Function-sendNotification-request.vtl"
+        response: "Function-sendNotification-response.vtl"
+    dataSources:
+      - type: AWS_LAMBDA
+        name: LambdaSource
+        description: "Lambda DataSource"
+        config:
+          functionName: graphql
+          lambdaFunctionArn: { Fn::GetAtt: [GraphqlLambdaFunction, Arn] }
+          serviceRoleArn: { Fn::GetAtt: [AppSyncLambdaServiceRole, Arn] }
+functions:
+  graphql:
+    handler: handler.graphqlHandler
+resources:
+  #appSync data source role
+  - ${file(resources/appsync.yml)}
+  # rds
+  - ${file(resources/rds.yml)}
+  # Cognito
+  - ${file(resources/cognito.yml)}

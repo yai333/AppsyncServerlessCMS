@@ -1,0 +1,68 @@
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      InstanceTenancy: default
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.0.0/24
+      VpcId:
+        Ref: VPC
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-southeast-2b
+      CidrBlock: 10.0.8.0/24
+      VpcId:
+        Ref: VPC
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-southeast-2c
+      CidrBlock: 10.0.32.0/24
+      VpcId:
+        Ref: VPC
+
+  Database:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DatabaseName: ${self:custom.dbName}
+      Engine: aurora
+      EngineMode: serverless
+      MasterUsername: ${self:custom.dbUserName}
+      MasterUserPassword: ${self:custom.dbPassword}
+      ScalingConfiguration:
+        AutoPause: true
+        MaxCapacity: 16
+        MinCapacity: 2
+        SecondsUntilAutoPause: 300
+      DBSubnetGroupName:
+        Ref: DBSubnetGroup
+      VpcSecurityGroupIds:
+        - Ref: DatabaseVpcSecurityGroup
+
+  DBSubnetGroup:
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties:
+      DBSubnetGroupDescription: "database subnet group"
+      SubnetIds:
+        - Ref: PrivateSubnet1
+        - Ref: PrivateSubnet2
+
+  DatabaseVpcSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupName: DBSecurityGroup
+      GroupDescription: Allow local access
+      SecurityGroupIngress:
+        - CidrIp: 10.0.0.0/16
+          IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+      VpcId:
+        Ref: VPC
