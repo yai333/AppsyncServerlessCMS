@@ -19,7 +19,9 @@ File Structure
 ## Deploy backend appsync api
 
 - Change admin email, database name, database username database user password in nodejs/serverless.yml
+
   eg.
+
   ``` 
 custom:
   poolName: ${self:provider.stage}SimpleCMS
@@ -30,15 +32,19 @@ custom:
 
   ```
 - Set up AWS credentials
+
   ```aws configure```
+
 - Install Serverless framework
+
   ```npm install -g serverless```
+
 - Deploy
   ```sls deploy --stage dev```
 
 ## How to Run App
 
-- Setup Appsync endpoints and AWS config in `front/src/config/config.js`, replace YOUR_IDENTITY_POOLID, YOUR_COGNITO_POOLID, YOUR_COGNITO_POOLID_CLIENTID to related values
+- Setup Appsync endpoints and AWS config in front/src/config/config.js, replace YOUR_IDENTITY_POOLID, YOUR_COGNITO_POOLID, YOUR_COGNITO_POOLID_CLIENTID to related values
 
 ```
 const AWSConfig = {
@@ -57,13 +63,17 @@ const AWSConfig = {
 ```
 
 - Install dependencies
+
   ```npm install```
 
 - Run app
+
   ```npm start```
 
 - Build app
+
   ```npm run build```
 
 - Deploy to AWS S3 bucket
+
   ```aws s3 cp build s3://YOUR_BUCKET_NAME```
