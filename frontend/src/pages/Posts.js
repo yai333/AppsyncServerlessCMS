@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { compose, graphql, withApollo } from "react-apollo";
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
@@ -123,10 +123,17 @@ const Posts = ({
   user,
   addPost,
   history,
-  deletePost
+  deletePost,
+  subscribeToAddPost,
+  subscribeToDeletePost
 }) => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [snackbarVisibility, setSnackbarVisibility] = useState(false);
+
+  useEffect(() => {
+    subscribeToAddPost();
+    subscribeToDeletePost();
+  }, []);
 
   const openModal = () => {
     !user && history.push("/login");
@@ -223,8 +230,62 @@ export default withApollo(
           fetchPolicy: "cache-and-network"
         };
       },
-      props: ({ data: { getPosts: posts, error, loading } }) => {
-        return { posts, error, loading };
+      props: ({
+        data: { getPosts: posts, error, loading, subscribeToMore }
+      }) => {
+        return {
+          posts,
+          error,
+          loading,
+          subscribeToAddPost: () => {
+            return subscribeToMore({
+              document: SubscribeToAddPost,
+              variables: {},
+              updateQuery: (prev, { subscriptionData }) => {
+                if (!subscriptionData.data) return prev;
+                const {
+                  data: { onPostAdded }
+                } = subscriptionData;
+                const { getPosts: posts } = prev;
+
+                if (posts.findIndex(post => post.id === onPostAdded.id) < 0)
+                  return Object.assign({}, prev, {
+                    getPosts: [onPostAdded, ...posts]
+                  });
+              },
+              onError: err => {
+                return console.error(err);
+              }
+            });
+          },
+          subscribeToDeletePost: () => {
+            return subscribeToMore({
+              document: SubscribeToDeletePost,
+              variables: {},
+              updateQuery: (prev, { subscriptionData }) => {
+                if (!subscriptionData.data) return prev;
+                const {
+                  data: { onPostDeleted }
+                } = subscriptionData;
+                const { getPosts: posts } = prev;
+                if (
+                  posts.findIndex(post => post.id === onPostDeleted.id) >= 0
+                ) {
+                  const newPosts = posts.filter(
+                    post => post && post.title && post.id !== onPostDeleted.id
+                  );
+
+                  return Object.assign({}, prev, {
+                    getPosts: newPosts
+                  });
+                }
+              },
+              onError: err => {
+                return console.error(err);
+              }
+            });
+          }
+        };
       }
     }),
     graphql(MutationAddPost, {
@@ -234,7 +295,7 @@ export default withApollo(
             variables: {
               post
             },
-            update: (proxy, { data: { addPost: new_creted_post } }) => {
+            update: (proxy, { data: { addPost } }) => {
               const query = QueryPosts;
               const { getPosts: posts = [] } = proxy.readQuery({
                 query,
@@ -242,13 +303,13 @@ export default withApollo(
               });
 
               const new_posts = posts.filter(
-                post => post && post.title && post.id !== new_creted_post.id
+                post => post && post.id !== addPost.id
               );
 
               proxy.writeQuery({
                 query,
                 data: {
-                  getPosts: [new_creted_post, ...new_posts]
+                  getPosts: [addPost, ...new_posts]
                 }
               });
             },
@@ -308,45 +369,6 @@ export default withApollo(
           });
         }
       })
-    }),
-    graphql(SubscribeToAddPost, {
-      props: ({ data = null, ownProps }) => {
-        const { onPostAdded = null } = data;
-        const { posts = [] } = ownProps;
-        console.log(onPostAdded);
-        if (onPostAdded) {
-          const new_posts = posts.filter(
-            post => post && post.id !== onPostAdded.id
-          );
-          console.log(ownProps);
-          return {
-            posts: [onPostAdded, ...new_posts],
-            preOnPostAdded: onPostAdded
-          };
-        }
-      }
-    }),
-    graphql(SubscribeToDeletePost, {
-      props: ({ data, ownProps }) => {
-        const { onPostDeleted = null } = data;
-        const { posts = [] } = ownProps;
-        console.log(ownProps);
-
-        if (onPostDeleted) {
-          const postExist = posts.findIndex(
-            post => post.id === onPostDeleted.id
-          );
-
-          if (postExist >= 0) {
-            const new_posts = posts.filter(
-              post => post && post.title && post.id !== onPostDeleted.id
-            );
-            return {
-              posts: new_posts
-            };
-          }
-        }
-      }
     })
   )(withStyles(styles, { withTheme: true })(withRouter(Posts)))
 );
