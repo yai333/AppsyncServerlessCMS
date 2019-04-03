@@ -354,12 +354,13 @@ export default withApollo(
               });
             },
             optimisticResponse: ({ id }) => {
+              console.log(id);
               return {
                 deletePost: {
                   id,
                   __typename: "Post",
-                  title: "",
-                  content: "",
+                  title: "DELETE",
+                  content: "deleted content",
                   createdAt: new Date(),
                   notificationEmails: "NA"
                 }
