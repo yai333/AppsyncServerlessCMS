@@ -282,7 +282,7 @@ export default withApollo(
               });
 
               const new_posts = posts.filter(
-                post => post && post.title && post.id !== deletePost.id
+                post => post && post.id !== deletePost.id
               );
 
               proxy.writeQuery({
@@ -293,12 +293,13 @@ export default withApollo(
               });
             },
             optimisticResponse: ({ id }) => {
+              console.log(id);
               return {
                 deletePost: {
                   id,
                   __typename: "Post",
-                  title: "",
-                  content: "",
+                  title: "DELETE",
+                  content: "deleted content",
                   createdAt: new Date(),
                   notificationEmails: "NA"
                 }
@@ -309,43 +310,42 @@ export default withApollo(
       })
     }),
     graphql(SubscribeToAddPost, {
-      options: () => {
-        return {
-          fetchPolicy: "cache-and-network"
-        };
-      },
-      props: ({ data, ownProps }) => {
-        const { onPostAdded } = data;
+      props: ({ data = null, ownProps }) => {
+        const { onPostAdded = null } = data;
         const { posts = [] } = ownProps;
-        const new_posts = onPostAdded
-          ? posts.filter(
-              post => post && post.title && post.id !== onPostAdded.id
-            )
-          : posts;
-
-        return {
-          posts: onPostAdded ? [onPostAdded, ...new_posts] : posts
-        };
+        console.log(onPostAdded);
+        if (onPostAdded) {
+          const new_posts = posts.filter(
+            post => post && post.id !== onPostAdded.id
+          );
+          console.log(ownProps);
+          return {
+            posts: [onPostAdded, ...new_posts],
+            preOnPostAdded: onPostAdded
+          };
+        }
       }
     }),
     graphql(SubscribeToDeletePost, {
-      options: () => {
-        return {
-          fetchPolicy: "cache-and-network"
-        };
-      },
       props: ({ data, ownProps }) => {
-        const { onPostDeleted } = data;
+        const { onPostDeleted = null } = data;
         const { posts = [] } = ownProps;
-        const new_posts = onPostDeleted
-          ? posts.filter(
-              post => post && post.title && post.id !== onPostDeleted.id
-            )
-          : posts;
+        console.log(ownProps);
 
-        return {
-          posts: new_posts
-        };
+        if (onPostDeleted) {
+          const postExist = posts.findIndex(
+            post => post.id === onPostDeleted.id
+          );
+
+          if (postExist >= 0) {
+            const new_posts = posts.filter(
+              post => post && post.title && post.id !== onPostDeleted.id
+            );
+            return {
+              posts: new_posts
+            };
+          }
+        }
       }
     })
   )(withStyles(styles, { withTheme: true })(withRouter(Posts)))

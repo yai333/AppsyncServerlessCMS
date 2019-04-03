@@ -1,13 +1,14 @@
 const AWSConfig = {
   amp: {
     region: "ap-southeast-2",
-    identityPoolId: "YOUR_IDENTITY_POOLID",
-    userPoolId: "YOUR_COGNITO_POOLID",
-    userPoolWebClientId: "YOUR_COGNITO_POOLID_CLIENTID",
+    identityPoolId: "ap-southeast-2:52748bd4-ac2d-48b1-aa68-e0f903ce2f9a",
+    userPoolId: "ap-southeast-2_3rWSMnT1B",
+    userPoolWebClientId: "khq752jucs1mlfacbgr9k1v6u",
     mandatorySignIn: false
   },
   appSync: {
-    url: "YOUR_APPSYNC_ENDPOINT",
+    url:
+      "https://mbjshv5ixzhlfmhfi56jarfzxu.appsync-api.ap-southeast-2.amazonaws.com/graphql",
     region: "ap-southeast-2"
   }
 };
