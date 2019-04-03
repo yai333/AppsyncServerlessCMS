@@ -35,14 +35,20 @@ File Structure
   ```
 - Set up AWS credentials
 
-  ```aws configure```
+  ```
+  $ aws configure
+  ```
 
 - Install Serverless framework
 
-  ```npm install -g serverless```
+  ```
+  $ npm install -g serverless
+  ```
 
 - Deploy
-  ```sls deploy --stage dev```
+  ```
+  $ sls deploy --stage dev
+  ```
 
 ## Set up Cognito and Appsync config
 
@@ -67,23 +73,23 @@ const AWSConfig = {
 - Install dependencies
 
   ```
-   npm install
+  $ npm install
   ```
 
 - Run app
 
   ```
-  npm start
+  $ npm start
   ```
 
 - Build app
 
   ```
-  npm run build
+  $ npm run build
   ```
 
 - Deploy app to AWS S3 bucket
 
   ```
-  aws s3 cp build s3://YOUR_BUCKET_NAME
+  $ aws s3 cp build s3://YOUR_BUCKET_NAME
   ```
