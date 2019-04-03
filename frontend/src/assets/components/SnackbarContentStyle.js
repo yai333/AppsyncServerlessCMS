@@ -8,7 +8,7 @@ import {
   roseBoxShadow
 } from "assets/react-css";
 
-const snackbarContentStyle = {
+const SnackbarContentStyle = {
   root: {
     ...defaultFont,
     flexWrap: "unset",
@@ -105,4 +105,4 @@ const snackbarContentStyle = {
   }
 };
 
-export default snackbarContentStyle;
+export default SnackbarContentStyle;

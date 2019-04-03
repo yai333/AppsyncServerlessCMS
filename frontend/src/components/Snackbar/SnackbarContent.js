@@ -5,7 +5,7 @@ import withStyles from "@material-ui/core/styles/withStyles";
 import Snack from "@material-ui/core/SnackbarContent";
 import IconButton from "@material-ui/core/IconButton";
 import Close from "@material-ui/icons/Close";
-import snackbarContentStyle from "assets/components/SnackbarContentStyle";
+import SnackbarContentStyle from "assets/components/SnackbarContentStyle";
 
 function SnackbarContent({ ...props }) {
   const { classes, message, color, close, icon } = props;
@@ -50,4 +50,4 @@ SnackbarContent.propTypes = {
   icon: PropTypes.func
 };
 
-export default withStyles(snackbarContentStyle)(SnackbarContent);
+export default withStyles(SnackbarContentStyle)(SnackbarContent);
