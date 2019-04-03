@@ -272,7 +272,7 @@ export default withApollo(
                   posts.findIndex(post => post.id === onPostDeleted.id) >= 0
                 ) {
                   const newPosts = posts.filter(
-                    post => post && post.title && post.id !== onPostDeleted.id
+                    post => post && post.id !== onPostDeleted.id
                   );
 
                   return Object.assign({}, prev, {
