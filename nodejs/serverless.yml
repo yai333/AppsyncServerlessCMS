@@ -42,7 +42,7 @@ custom:
     serviceRole: "${self:service.name}-AppSyncServiceRole"
     userPoolConfig:
       awsRegion: "${self:provider.region}"
-      userPoolId: ${self:custom.userPool.${self:provider.stage}}
+      userPoolId: ${self:service.name.${self:provider.stage}}
       defaultAction: ALLOW
     mappingTemplates:
       - type: Query
