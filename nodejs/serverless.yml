@@ -40,10 +40,6 @@ custom:
     name: ${self:service.name}-${self:provider.stage}
     authenticationType: AWS_IAM
     serviceRole: "${self:service.name}-AppSyncServiceRole"
-    userPoolConfig:
-      awsRegion: "${self:provider.region}"
-      userPoolId: ${self:service.name.${self:provider.stage}}
-      defaultAction: ALLOW
     mappingTemplates:
       - type: Query
         dataSource: LambdaSource
