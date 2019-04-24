@@ -52,7 +52,7 @@ File Structure
 
 ## Set up Cognito and Appsync config
 
-- Setup Appsync endpoints and AWS config in front/src/config/config.js, replace YOUR_IDENTITY_POOLID, YOUR_COGNITO_POOLID, YOUR_COGNITO_POOLID_CLIENTID to related values
+- Setup Appsync endpoints and AWS config in frontend/src/config/config.js, replace YOUR_IDENTITY_POOLID, YOUR_COGNITO_POOLID, YOUR_COGNITO_POOLID_CLIENTID to related values
 
 ```
 const AWSConfig = {
